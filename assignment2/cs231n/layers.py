@@ -511,7 +511,14 @@ def max_pool_backward_naive(dout, cache):
     pool_height, pool_width, stride = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
     N, C, H, W = x.shape
     dx = np.zeros_like(x)
-    
+    H_out = int((H - pool_height)/stride + 1)
+    W_out = int((W - pool_width)/stride + 1)
+    for i in range(H_out):
+        for j in range(W_out):
+            x_padded_mask = x[:, :, i*stride:i*stride+pool_height, j*stride:j*stride+pool_width]
+            max_mask = np.max(x_padded_mask, axis=(2,3))
+            temp_binary_mask = (x_padded_mask == (max_mask)[:, :, None, None])
+            dx[:, :, i*stride:i*stride+pool_height, j*stride:j*stride+pool_width] += temp_binary_mask*(dout[:, :, i, j])[:, :, None, None]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
